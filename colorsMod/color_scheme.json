@@ -1,0 +1,25 @@
+{
+  "primary_color_lite": "#3B3753",
+  "primary_color_light": "#1C1A2A",
+  "primary_color": "#373647",
+  "primary_color_dark": "#1F1D2C",
+  "primary_color_darker": "#1C1C28",
+
+  "secondary_color_lite": "#908FD6",
+  "secondary_color_light": "#706FC8",
+  "secondary_color": "#706FC8",
+  "secondary_color_dark": "#5150BA",
+  "secondary_color_darker": "#39388D",
+
+  "accent_color_lite": "#FFD992",
+  "accent_color_light": "#FECC6D",
+  "accent_color": "#FFC14C",
+  "accent_color_dark": "#FFA908",
+  "accent_color_darker": "#D28A00",
+
+  "warning_color_lite": "#FF9BC1",
+  "warning_color_light": "#FE73A8",
+  "warning_color": "#EA5E93",
+  "warning_color_dark": "#FC3D85",
+  "warning_color_darker": "#F21A6C"
+}
