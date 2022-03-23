@@ -80,7 +80,7 @@ class Notes(QMainWindow):
 
     def closeEvent(self, event):
         self.audio.shutter()
-        time.sleep(0.5)
+        time.sleep(0.2)
         event.accept()
 
 
