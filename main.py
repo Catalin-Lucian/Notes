@@ -1,4 +1,5 @@
 import sys
+import time
 
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QFont
@@ -77,9 +78,10 @@ class Notes(QMainWindow):
         self.folderLine.setGeometry(414, 134, 50, 3)
         self.folderLine.setStyleSheet(f"background-color:{self.colorScheme.colors['accent_color']}")
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.audio.celebration()
-        super(Notes, self).__exit__(exc_type, exc_val, exc_tb)
+    def closeEvent(self, event):
+        self.audio.shutter()
+        time.sleep(0.5)
+        event.accept()
 
 
 if __name__ == '__main__':
