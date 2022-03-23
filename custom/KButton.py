@@ -4,24 +4,24 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.QtWidgets import QPushButton
 
+from custom.KAudio import KAudio
+
 
 class KButton(QPushButton):
     click_signal = pyqtSignal()
 
     def __init__(self, parent, iconUnClicked=None, iconClicked=None, iconHover=None):
         super(KButton, self).__init__(parent)
-        self.clickedIcon = None
-        self.unClickedIcon = None
-        self.hoverIcon = None
 
-        if iconClicked:
-            self.clickedIcon = QIcon("icons\\" + iconClicked)
-        if iconUnClicked:
-            self.unClickedIcon = QIcon("icons\\" + iconUnClicked)
-        if iconHover:
-            self.hoverIcon = QIcon("icons\\" + iconHover)
+        self.audio = KAudio()
 
+        self.clickedIcon = QIcon("icons\\" + iconClicked) if iconClicked else None
+        self.unClickedIcon = QIcon("icons\\" + iconUnClicked) if iconUnClicked else None
+        self.hoverIcon = QIcon("icons\\" + iconHover) if iconHover else None
+
+        self.sound = None
         self.onTop = False
+
         self.setupUi()
 
     def setupUi(self):
@@ -36,6 +36,12 @@ class KButton(QPushButton):
         if e.button() == Qt.LeftButton:
             if self.clickedIcon:
                 self.setIcon(self.clickedIcon)
+
+            # play audio if found or default tap sound
+            if self.sound:
+                self.audio.playSound(self.sound)
+            else:
+                self.audio.tap()
 
     def mouseReleaseEvent(self, e):
         if e.button() == Qt.LeftButton:
