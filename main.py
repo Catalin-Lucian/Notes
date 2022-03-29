@@ -2,16 +2,22 @@ import sys
 import time
 
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QResizeEvent
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QLabel, QPushButton
 
 from colorsMod.ColorScheme import ColorScheme
 from custom.KAudio import KAudio
 from custom.KButton import KButton
 from custom.KGridScrollArea import KGridScrollArea
+from custom.KNote import KNote
 
 
 class Notes(QMainWindow):
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Notes, cls).__new__(cls)
+        return cls.instance
+
     def __init__(self):
         super(Notes, self).__init__()
 
@@ -20,12 +26,15 @@ class Notes(QMainWindow):
 
         self.centralWidget = QWidget(self)
 
+        self.contentArea = KGridScrollArea(self.centralWidget)
+        self.contentArea.addWidget(KNote())
+        self.contentArea.addWidget(KNote())
+        self.contentArea.addWidget(KNote())
+        self.contentArea.addWidget(KNote())
+
         self.addButton = KButton(self.centralWidget, "plus.png")
         self.searchButton = KButton(self.centralWidget, "search.png")
         self.settingsButton = KButton(self.centralWidget, "settings.png")
-
-        self.contentArea = KGridScrollArea(self.centralWidget)
-        self.contentArea.addWidget(QPushButton())
 
         # --------------------------------
         self.allButton = QLabel(self.centralWidget)
@@ -38,11 +47,11 @@ class Notes(QMainWindow):
 
     def setup_ui(self):
         self.setWindowTitle("Notes")
-        self.resize(590, 900)
+        self.resize(590, 850)
         self.setCentralWidget(self.centralWidget)
         self.centralWidget.setStyleSheet(f"background-color: {self.colorScheme.colors['primary_color_darker']};")
 
-        self.addButton.setGeometry(516, 826, 54, 54)
+        self.addButton.setGeometry(525, 785, 54, 54)
         self.addButton.setIconSize(QSize(34, 34))
         self.addButton.setStyleSheet(f"background-color:{self.colorScheme.colors['secondary_color']};"
                                      f"border-radius: 25")
@@ -82,6 +91,10 @@ class Notes(QMainWindow):
         self.audio.shutter()
         time.sleep(0.2)
         event.accept()
+
+    # def resizeEvent(self, event: QResizeEvent):
+    #     super(Notes, self).resizeEvent(event)
+    #     self.contentArea.resize(event.size())
 
 
 if __name__ == '__main__':

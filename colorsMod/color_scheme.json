@@ -21,5 +21,8 @@
   "warning_color_light": "#FE73A8",
   "warning_color": "#EA5E93",
   "warning_color_dark": "#FC3D85",
-  "warning_color_darker": "#F21A6C"
+  "warning_color_darker": "#F21A6C",
+
+  "secondary_text_color": "rgba(255, 255, 255, 0.75)",
+  "primary_text_color": "white"
 }
