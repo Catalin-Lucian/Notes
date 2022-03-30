@@ -1,7 +1,10 @@
+import os
 import sys
+import threading
 import time
 
-from PyQt5.QtCore import QSize
+import psutil as psutil
+from PyQt5.QtCore import QSize, pyqtSignal
 from PyQt5.QtGui import QFont, QResizeEvent
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QLabel, QPushButton
 
@@ -10,9 +13,11 @@ from custom.KAudio import KAudio
 from custom.KButton import KButton
 from custom.KGridScrollArea import KGridScrollArea
 from custom.KNote import KNote
+from voice.voiceManger import VoiceManager
 
 
 class Notes(QMainWindow):
+
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(Notes, cls).__new__(cls)
@@ -23,12 +28,13 @@ class Notes(QMainWindow):
 
         self.colorScheme = ColorScheme()
         self.audio = KAudio()
+        self.voice = VoiceManager()
+        self.voiceThread = threading.Thread(target=self.voice.start)
+        self.voiceThread.start()
 
         self.centralWidget = QWidget(self)
 
         self.contentArea = KGridScrollArea(self.centralWidget)
-        self.contentArea.addWidget(KNote())
-        self.contentArea.addWidget(KNote())
         self.contentArea.addWidget(KNote())
         self.contentArea.addWidget(KNote())
 
@@ -55,6 +61,7 @@ class Notes(QMainWindow):
         self.addButton.setIconSize(QSize(34, 34))
         self.addButton.setStyleSheet(f"background-color:{self.colorScheme.colors['secondary_color']};"
                                      f"border-radius: 25")
+        self.addButton.click_signal.connect(self.addNewNote)
 
         self.searchButton.setGeometry(483, 41, 30, 30)
         self.searchButton.setIconSize(QSize(30, 30))
@@ -87,14 +94,30 @@ class Notes(QMainWindow):
         self.folderLine.setGeometry(414, 134, 50, 3)
         self.folderLine.setStyleSheet(f"background-color:{self.colorScheme.colors['accent_color']}")
 
+        self.voice.sNewNote.connect(self.addNewNote)
+
     def closeEvent(self, event):
         self.audio.shutter()
         time.sleep(0.2)
         event.accept()
 
+    def addNewNote(self):
+        note = KNote()
+        self.contentArea.addWidget(note)
+        note.noteWindow.show()
+        self.voice.sInsertTitle.connect(note.noteWindow.title.setText)
+        self.voice.sInsertContent.connect(note.noteWindow.content.setHtml)
+        note.noteWindow.button.clicked.connect(self.show)
+
     # def resizeEvent(self, event: QResizeEvent):
     #     super(Notes, self).resizeEvent(event)
     #     self.contentArea.resize(event.size())
+
+
+def kill_proc_tree(pid, including_parent=True):
+    parent = psutil.Process(pid)
+    if including_parent:
+        parent.kill()
 
 
 if __name__ == '__main__':
@@ -102,4 +125,7 @@ if __name__ == '__main__':
     notes = Notes()
 
     notes.show()
-    sys.exit(app.exec())
+    returnValue = app.exec()
+    if returnValue is not None:
+        kill_proc_tree(os.getpid())
+        sys.exit(returnValue)

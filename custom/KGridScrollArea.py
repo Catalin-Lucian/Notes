@@ -38,7 +38,9 @@ class KGridScrollArea(QScrollArea):
         self.setWidget(self.scrollAreaWidgetContents)
 
     def addWidget(self, widget: KNote):
+        self.verticalLayout.removeItem(self.spacerItem)
         self.verticalLayout.addWidget(widget)
+        self.verticalLayout.addItem(self.spacerItem)
 
 
 

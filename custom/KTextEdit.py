@@ -16,6 +16,7 @@ class KLineEdit(QLineEdit):
         self.doubleClicked.emit(e)
 
 
+
 class KTextEdit(QTextEdit):
     doubleClicked = pyqtSignal(QMouseEvent)
 
