@@ -5,21 +5,24 @@ from PyQt5.QtWidgets import QFrame, QSizePolicy
 from colorsMod.ColorScheme import ColorScheme
 from custom.KNoteWindow import KNoteWindow
 from custom.KTextEdit import KLineEdit, KTextEdit
-from data.noteData import NoteData
+from data.noteData import NoteData, SQLiteManager
 from voice.voiceManger import VoiceManager
 
 
 class KNote(QFrame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, data=None):
         super().__init__(parent)
         self.colorScheme = ColorScheme()
         self.voice = VoiceManager()
-        self.data = NoteData()
+        self.data = NoteData() if data is None else data
+
+        self.sqlite = SQLiteManager()
 
         self.titleText = KLineEdit(self)
         self.contentText = KTextEdit(self)
 
         self.noteWindow = KNoteWindow()
+        self.noteWindow.close_signal.connect(self.onNoteWindowClose)
 
         self.setup_ui()
 
@@ -45,7 +48,7 @@ class KNote(QFrame):
         self.titleText.setReadOnly(True)
         self.titleText.setGeometry(16, 11, 501, 44)
         self.titleText.setPlaceholderText("Note title")
-        self.titleText.doubleClicked.connect(self.mouseDoubleClickEvent)
+        self.titleText.simpleClicked.connect(self.mouseDoubleClickEvent)
 
         font.setBold(False)
         font.setPointSize(14)
@@ -54,16 +57,20 @@ class KNote(QFrame):
         self.contentText.setPlaceholderText("content here")
         self.contentText.setReadOnly(True)
         self.contentText.setGeometry(16, 64, 501, 133)
-        self.contentText.doubleClicked.connect(self.mouseDoubleClickEvent)
+        self.contentText.simpleClicked.connect(self.mouseDoubleClickEvent)
         self.contentText.setStyleSheet(f"background-color: {self.colorScheme.colors['primary_color']};"
-                                       f"color:{self.colorScheme.colors['secondary_text_color']};")
+                                       f"color:{self.colorScheme.colors['secondary_text_color']};"
+                                       "QScrollBar:vertical {"
+                                       "width: 2px;"
+                                       "margin: 45px 0 45px 0;}")
+        # self.contentText.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.noteWindow.setNoteData(self.data)
         self.noteWindow.title.textChanged.connect(self.onTitleChanged)
         self.noteWindow.content.textChanged.connect(self.onContentChanged)
 
-    def mouseDoubleClickEvent(self, e: QMouseEvent):
-        super(KNote, self).mouseDoubleClickEvent(e)
+    def mouseReleaseEvent(self, e: QMouseEvent):
+        super(KNote, self).mouseReleaseEvent(e)
         if e.button() == Qt.LeftButton:
             self.noteWindow.show()
             self.voice.sInsertTitle.connect(self.noteWindow.title.setText)
@@ -76,3 +83,7 @@ class KNote(QFrame):
     def onContentChanged(self):
         self.data.content = self.noteWindow.content.toHtml()
         self.contentText.setHtml(self.data.content)
+
+    def onNoteWindowClose(self):
+        self.noteWindow.hide()
+        self.sqlite.updateNote(self.data)

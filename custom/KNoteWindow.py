@@ -1,17 +1,20 @@
-from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QFont, QCloseEvent
 from PyQt5.QtWidgets import QMainWindow, QWidget, QLineEdit, QTextEdit, QFrame, QPushButton
 
 from colorsMod.ColorScheme import ColorScheme
-from data.noteData import NoteData
+from data.noteData import NoteData, SQLiteManager
 from voice.voiceManger import VoiceManager
 
 
 class KNoteWindow(QMainWindow):
+    close_signal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
         self.colorScheme = ColorScheme()
         self.data = NoteData()
+        self.sqlite = SQLiteManager()
 
         self.centralWidget = QWidget(self)
         self.title = QLineEdit(self.centralWidget)
@@ -49,6 +52,7 @@ class KNoteWindow(QMainWindow):
         self.content.setPlaceholderText("content here")
         self.content.setStyleSheet(f"background-color: {self.colorScheme.colors['primary_color_darker']};"
                                    f"color: {self.colorScheme.colors['secondary_text_color']}")
+        self.content.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.toolBar.setGeometry(15, 508, 415, 43)
 
@@ -57,6 +61,7 @@ class KNoteWindow(QMainWindow):
         self.title.setText(self.data.title)
         self.content.setText(self.data.content)
 
-    def processNewString(self, text):
-        # self.content.setHtml(text)
-        print(text)
+    def closeEvent(self, e: QCloseEvent):
+        self.close_signal.emit()
+        super(KNoteWindow, self).closeEvent(e)
+

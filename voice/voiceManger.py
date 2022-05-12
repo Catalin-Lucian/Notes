@@ -21,6 +21,8 @@ class VoiceManager(QObject):
         self.microphone = sr.Microphone()
         self.engine = pyttsx3.init()
 
+        self.quitFlag = False
+
     def speechToText(self):
         with self.microphone as source:
             self.recognizer.adjust_for_ambient_noise(source)
@@ -51,16 +53,20 @@ class VoiceManager(QObject):
     def start(self):
         action = 'new command'
         print(action)
-        quitFlag = True
-        while quitFlag:
+        self.quitFlag = False
+        while not self.quitFlag:
             text = self.speechToText()
             print(f"----new command----  state:{action}")
             if not text["success"] and text["error"] == "API unavailable":
                 print("ERROR: {}\nclose program".format(text["error"]))
                 break
             while not text["success"]:
+                if self.quitFlag:
+                    break
                 print("I didn't catch that. What did you say?\n")
                 text = self.speechToText()
+            if self.quitFlag:
+                break
             if text["transcription"].lower() == "exit":
                 quitFlag = False
             print(text["transcription"].lower())
@@ -86,4 +92,4 @@ class VoiceManager(QObject):
                 else:
                     self.sInsertContent.emit(text["transcription"].lower())
 
-
+        print("Voice assist stopped")

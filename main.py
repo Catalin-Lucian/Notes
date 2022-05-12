@@ -4,15 +4,17 @@ import threading
 import time
 
 import psutil as psutil
-from PyQt5.QtCore import QSize, pyqtSignal
-from PyQt5.QtGui import QFont, QResizeEvent
-from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QLabel, QPushButton
+from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QLabel
 
 from colorsMod.ColorScheme import ColorScheme
 from custom.KAudio import KAudio
 from custom.KButton import KButton
+from custom.KCheckButton import KCheckButton
 from custom.KGridScrollArea import KGridScrollArea
 from custom.KNote import KNote
+from video.VideoManager import VideoManager
 from voice.voiceManger import VoiceManager
 
 
@@ -29,31 +31,31 @@ class Notes(QMainWindow):
         self.colorScheme = ColorScheme()
         self.audio = KAudio()
         self.voice = VoiceManager()
-        self.voiceThread = threading.Thread(target=self.voice.start)
-        self.voiceThread.start()
+        self.video = VideoManager()
 
         self.centralWidget = QWidget(self)
-
         self.contentArea = KGridScrollArea(self.centralWidget)
-        self.contentArea.addWidget(KNote())
-        self.contentArea.addWidget(KNote())
 
         self.addButton = KButton(self.centralWidget, "plus.png")
         self.searchButton = KButton(self.centralWidget, "search.png")
-        self.settingsButton = KButton(self.centralWidget, "settings.png")
 
-        # --------------------------------
-        self.allButton = QLabel(self.centralWidget)
-        self.allLine = QWidget(self.centralWidget)
+        self.voiceAssistButton = KCheckButton(self.centralWidget, "ai_disabled.svg", "ai_enabled.svg")
+        self.voiceAssistThread = None
 
-        self.folderButton = QLabel(self.centralWidget)
-        self.folderLine = QWidget(self.centralWidget)
+        self.videoMouseControlButton = KCheckButton(self.centralWidget, "cursor_disabled.svg", "cursor_enabled.svg")
+        self.videoThread = None
+
+        self.soundButton = KCheckButton(self.centralWidget, "sound_off.svg", "sound_on.svg")
+        self.soundBool = False
+
+        self.nameLabel = QLabel(self.centralWidget)
 
         self.setup_ui()
 
     def setup_ui(self):
+
         self.setWindowTitle("Notes")
-        self.resize(590, 850)
+        self.setFixedSize(590, 850)
         self.setCentralWidget(self.centralWidget)
         self.centralWidget.setStyleSheet(f"background-color: {self.colorScheme.colors['primary_color_darker']};")
 
@@ -63,38 +65,34 @@ class Notes(QMainWindow):
                                      f"border-radius: 25")
         self.addButton.click_signal.connect(self.addNewNote)
 
-        self.searchButton.setGeometry(483, 41, 30, 30)
+        self.searchButton.setGeometry(405, 41, 30, 30)
         self.searchButton.setIconSize(QSize(30, 30))
 
-        self.settingsButton.setGeometry(540, 41, 30, 30)
-        self.settingsButton.setIconSize(QSize(30, 30))
-        self.settingsButton.sound = self.audio.shutterSound
+        self.videoMouseControlButton.setGeometry(451, 41, 30, 30)
+        self.videoMouseControlButton.setIconSize(QSize(30, 30))
+        self.videoMouseControlButton.check_signal.connect(self.activate_mouse_control)
+
+        self.voiceAssistButton.setGeometry(503, 41, 30, 30)
+        self.voiceAssistButton.setIconSize(QSize(30, 30))
+        self.voiceAssistButton.check_signal.connect(self.activate_voice_assist)
+        self.voiceAssistButton.sound = self.audio.shutterSound
+
+        self.soundButton.setGeometry(548, 41, 30, 30)
+        self.soundButton.setIconSize(QSize(30, 30))
+        self.soundButton.check_signal.connect(self.activate_sound)
 
         # ----------------------------------------------------
         font = QFont()
         font.setFamily("Calibri")
-        font.setPointSize(18)
+        font.setPointSize(28)
         font.setWeight(75)
 
-        self.allButton.setGeometry(150, 102, 50, 26)
-        self.allButton.setStyleSheet(f"color:{self.colorScheme.colors['accent_color']};"
-                                     f"text-align: center")
-        self.allButton.setText("All")
-        self.allButton.setFont(font)
-
-        self.allLine.setGeometry(140, 134, 50, 3)
-        self.allLine.setStyleSheet(f"background-color:{self.colorScheme.colors['accent_color']}")
-
-        self.folderButton.setGeometry(400, 102, 135, 26)
-        self.folderButton.setStyleSheet(f"color:{self.colorScheme.colors['accent_color']};"
-                                        f"text-align: center")
-        self.folderButton.setText("Folder")
-        self.folderButton.setFont(font)
-
-        self.folderLine.setGeometry(414, 134, 50, 3)
-        self.folderLine.setStyleSheet(f"background-color:{self.colorScheme.colors['accent_color']}")
-
         self.voice.sNewNote.connect(self.addNewNote)
+        self.nameLabel.setGeometry(20, 41, 300, 35)
+        self.nameLabel.setStyleSheet(f"color:{self.colorScheme.colors['accent_color']};"
+                                     f"text-align: center")
+        self.nameLabel.setText("Notes")
+        self.nameLabel.setFont(font)
 
     def closeEvent(self, event):
         self.audio.shutter()
@@ -103,15 +101,33 @@ class Notes(QMainWindow):
 
     def addNewNote(self):
         note = KNote()
-        self.contentArea.addWidget(note)
+        self.contentArea.insertWidget(0, note)
         note.noteWindow.show()
         self.voice.sInsertTitle.connect(note.noteWindow.title.setText)
         self.voice.sInsertContent.connect(note.noteWindow.content.setHtml)
         note.noteWindow.button.clicked.connect(self.show)
 
-    # def resizeEvent(self, event: QResizeEvent):
-    #     super(Notes, self).resizeEvent(event)
-    #     self.contentArea.resize(event.size())
+    def activate_mouse_control(self, enable):
+        if enable:
+            self.videoThread = threading.Thread(target=self.video.start())
+            self.videoThread.start()
+        else:
+            self.video.quitFlag = True
+
+    def activate_sound(self, enable):
+        self.audio.isOn = enable
+
+    def activate_voice_assist(self, enable):
+        if enable:
+            self.voiceAssistThread = threading.Thread(target=self.voice.start)
+            self.voiceAssistThread.start()
+        else:
+            self.voice.quitFlag = True
+
+    # on close event
+    def close(self):
+        self.contentArea.saveNoteDataList()
+        super(Notes, self).close()
 
 
 def kill_proc_tree(pid, including_parent=True):

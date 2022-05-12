@@ -4,27 +4,26 @@ from PyQt5.QtWidgets import QLineEdit, QTextEdit
 
 
 class KLineEdit(QLineEdit):
-    doubleClicked = pyqtSignal(QMouseEvent)
+    simpleClicked = pyqtSignal(QMouseEvent)
 
     def __init__(self, parent):
         super(KLineEdit, self).__init__(parent)
         self.setCursor(Qt.PointingHandCursor)
         # self.viewport().setCursor(Qt.PointingHandCursor)
 
-    def mouseDoubleClickEvent(self, e: QMouseEvent):
-        super(KLineEdit, self).mouseDoubleClickEvent(e)
-        self.doubleClicked.emit(e)
-
+    def mouseReleaseEvent(self, e: QMouseEvent):
+        super(KLineEdit, self).mouseReleaseEvent(e)
+        self.simpleClicked.emit(e)
 
 
 class KTextEdit(QTextEdit):
-    doubleClicked = pyqtSignal(QMouseEvent)
+    simpleClicked = pyqtSignal(QMouseEvent)
 
     def __init__(self, parent):
         super(KTextEdit, self).__init__(parent)
         self.setCursor(Qt.PointingHandCursor)
         self.viewport().setCursor(Qt.PointingHandCursor)
 
-    def mouseDoubleClickEvent(self, e: QMouseEvent):
-        super(KTextEdit, self).mouseDoubleClickEvent(e)
-        self.doubleClicked.emit(e)
+    def mouseReleaseEvent(self, e: QMouseEvent):
+        super(KTextEdit, self).mouseReleaseEvent(e)
+        self.simpleClicked.emit(e)

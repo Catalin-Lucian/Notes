@@ -38,10 +38,10 @@ class KButton(QPushButton):
                 self.setIcon(self.clickedIcon)
 
             # play audio if found or default tap sound
-            if self.sound:
-                self.audio.playSound(self.sound)
-            else:
-                self.audio.tap()
+            # if self.sound:
+            #     self.audio.playSound(self.sound)
+            # else:
+            #     self.audio.tap()
 
     def mouseReleaseEvent(self, e):
         if e.button() == Qt.LeftButton:

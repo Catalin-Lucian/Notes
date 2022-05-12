@@ -16,10 +16,13 @@ class KAudio(object):
         self.celebrationSound = "ui_celebration.wav"
         self.shutterSound = "ui_shutter.wav"
 
+        self.isOn = False
+
     def playSound(self, soundFile):
-        print(f"{os.getcwd()}\\sounds\\{soundFile}")
-        # threading.Thread(target=playsound, args=(f"{os.getcwd()}\\sounds\\"+soundFile,)).start()
-        playsound(f"{os.getcwd()}\\sounds\\"+soundFile, False)
+        if self.isOn:
+            print(f"{os.getcwd()}\\sounds\\{soundFile}")
+            # threading.Thread(target=playsound, args=(f"{os.getcwd()}\\sounds\\"+soundFile,)).start()
+            playsound(f"{os.getcwd()}\\sounds\\"+soundFile, False)
 
     def tap(self):
         self.playSound(self.tapSound)
